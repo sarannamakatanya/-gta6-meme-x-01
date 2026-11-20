@@ -1,10 +1,11 @@
-// gta6-meme-x-01 — "GTA VI is still loading" meme, drawn entirely in code.
+// gta6-meme-x-01 — "GTA VI can wait" meme, drawn entirely in code.
 //
-// The joke: a fake Grand Theft Auto VI loading screen in the GTA V style —
-// the loading screen's big centred character IS the make.fun ghost, standing
-// in a Leonida / Vice City sunset. GTA VI is still loading — but the ghost is
-// already earning. The tip reads, word for word:
-//   "TIP: While this loads, your AI agent could be earning real money on make.fun."
+// The joke: a four-panel comic in the style of the classic "guy sees GTA VI
+// out the window, goes back to his PC" meme — except the guy IS the make.fun
+// ghost, and the PC shows make.fun. Panel 1: the ghost spots the GTA VI poster
+// through the window. Panel 2: it reaches for the curtain. Panel 3: curtain
+// closed, it turns back to the desk. Panel 4: glued to the make.fun homesite.
+// GTA VI can wait — the ghost is already earning.
 //
 // This program (Node 22, standard library only, no network, no clock, no files
 // outside its own repository) does two deterministic things:
@@ -15,11 +16,10 @@
 //   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
 // Both runs write the same bytes.
 //
-// The picture is drawn, not pasted: sky gradient, retro sun as the ghost's halo,
-// bay, neon skyline, palm silhouettes, the make.fun ghost with its magenta star
-// coin, the loading bar and the tip strip, all with a small 5x7 bitmap font so
-// every letter lands exactly where it should — no garbled text, readable even
-// shrunk to 480 px.
+// The picture is drawn, not pasted: four comic panels — room, window, GTA VI
+// poster, curtains, desk, monitors, and the make.fun ghost with its magenta
+// star coin — all with a small 5x7 bitmap font so every letter lands exactly
+// where it should — no garbled text, readable even shrunk to 480 px.
 
 import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -334,125 +334,109 @@ function sparkle(cx: number, cy: number, r: number, c: RGBA): void {
 }
 
 // ---------------------------------------------------------------------------
-// The scene.
+// The scene: a four-panel comic in the style of the classic "guy sees GTA VI
+// out the window, goes back to his PC" meme — except the guy IS the make.fun
+// ghost, and the PC shows make.fun. Panels (2x2, 8px gutters): the ghost spots
+// the GTA VI poster through the window, reaches for the curtain, turns back
+// to the desk, and ends up glued to the make.fun homesite instead. GTA VI can
+// wait — the ghost is already earning.
 // ---------------------------------------------------------------------------
-const SKY_STOPS: [number, RGBA][] = [
-  [0.0, rgb(22, 10, 46)],
-  [0.32, rgb(109, 26, 94)],
-  [0.58, rgb(194, 42, 114)],
-  [0.8, rgb(255, 106, 61)],
-  [1.0, rgb(255, 179, 71)],
-];
+const PANEL = 504;
+const GUT = 8;
 
-function skyColourAt(y: number): RGBA {
-  const t = Math.max(0, Math.min(1, y / 640));
-  for (let i = 1; i < SKY_STOPS.length; i++) {
-    if (t <= SKY_STOPS[i][0]) {
-      const [t0, c0] = SKY_STOPS[i - 1];
-      const [t1, c1] = SKY_STOPS[i];
-      return mix(c0, c1, (t - t0) / (t1 - t0));
-    }
-  }
-  return SKY_STOPS[SKY_STOPS.length - 1][1];
+const WALL_A = rgb(96, 92, 128);
+const WALL_B = rgb(86, 84, 118);
+const FLOOR = rgb(58, 54, 88);
+const FRAME = rgb(20, 12, 36);
+const CURTAIN = rgb(214, 206, 232);
+
+function drawPanelFrame(px0: number, py0: number, wall: RGBA): void {
+  fillRect(px0, py0, px0 + PANEL, py0 + PANEL, wall);
+  // Floor.
+  fillRect(px0, py0 + 420, px0 + PANEL, py0 + PANEL, FLOOR);
+  fillRect(px0, py0 + 420, px0 + PANEL, py0 + 424, rgb(40, 34, 64));
 }
 
-function drawSky(): void {
-  for (let y = 0; y < 640; y++) {
-    const c = skyColourAt(y);
-    for (let x = 0; x < W; x++) setPixel(x, y, c);
+// The GTA VI poster: a mini Leonida sunset with the logo and a palm.
+function drawPoster(x: number, y: number, w: number, h: number): void {
+  // Sunset bands.
+  const bands: RGBA[] = [rgb(109, 26, 94), rgb(194, 42, 114), rgb(255, 106, 61), rgb(255, 179, 71)];
+  const bh = h / bands.length;
+  for (let i = 0; i < bands.length; i++) {
+    fillRect(x, y + i * bh, x + w, y + (i + 1) * bh, bands[i]);
   }
-  // Stars in the upper sky, fixed seed.
-  const rand = mulberry32(20261120);
-  for (let i = 0; i < 130; i++) {
-    const x = rand() * W;
-    const y = rand() * 300;
-    const a = 90 + Math.floor(rand() * 165);
-    const s = rand() < 0.12 ? 2 : 1;
-    fillRect(x, y, x + s, y + s, rgb(255, 255, 255, a));
-  }
-}
-
-function drawSun(): void {
-  // Glow, then the disc, then the retro slits across its lower half.
-  // Centred behind the ghost, so the sun reads as the character's halo.
-  fillCircle(512, 480, 190, rgb(255, 150, 60, 28));
-  fillCircle(512, 480, 165, rgb(255, 170, 70, 45));
-  fillCircle(512, 480, 140, rgb(255, 214, 90));
-  fillCircle(512, 480, 118, rgb(255, 230, 109));
-  const slitYs = [520, 546, 574, 604];
-  const slitHs = [7, 9, 12, 15];
-  for (let i = 0; i < slitYs.length; i++) {
-    fillRect(512 - 140, slitYs[i], 512 + 140, slitYs[i] + slitHs[i], skyColourAt(slitYs[i]));
-  }
-}
-
-function drawOcean(): void {
-  for (let y = 640; y < 820; y++) {
-    const t = (y - 640) / 180;
-    const c = mix(rgb(58, 18, 84), rgb(16, 8, 44), t);
-    for (let x = 0; x < W; x++) setPixel(x, y, c);
-  }
-  // Sun glitter on the water: short horizontal dashes, widest near the sun.
-  const rand = mulberry32(77);
-  for (let row = 0; row < 14; row++) {
-    const y = 652 + row * 12;
-    const half = 150 - row * 8;
-    for (let i = 0; i < 7; i++) {
-      const w = 26 + rand() * 60;
-      const x = 512 - half + rand() * (half * 2 - w);
-      const warm = rand() < 0.6 ? rgb(255, 190, 90, 150) : rgb(255, 120, 90, 120);
-      fillRect(x, y, x + w, y + 3, warm);
-    }
-  }
-}
-
-function drawSkyline(): void {
-  const rand = mulberry32(1234);
+  // Sun.
+  fillCircle(x + w * 0.68, y + h * 0.38, w * 0.14, rgb(255, 230, 109));
+  // Palm silhouette, right side: leaning trunk, fronds drooping out and down.
   const dark = rgb(24, 10, 48);
-  let x = -20;
-  while (x < W + 20) {
-    const bw = 46 + rand() * 70;
-    const bh = 42 + rand() * 78;
-    const top = 640 - bh;
-    fillRect(x, top, x + bw, 640, dark);
-    // Antenna on some towers.
-    if (rand() < 0.4) thickLine(x + bw / 2, top, x + bw / 2, top - 16 - rand() * 14, 3, dark);
-    // Lit windows.
-    for (let wy = top + 10; wy < 630; wy += 16) {
-      for (let wx = x + 8; wx < x + bw - 8; wx += 14) {
-        if (rand() < 0.34) {
-          const wc = rand() < 0.55 ? rgb(255, 214, 110) : rand() < 0.5 ? rgb(90, 230, 255) : rgb(255, 110, 180);
-          fillRect(wx, wy, wx + 5, wy + 7, wc);
-        }
-      }
-    }
-    x += bw + 4 + rand() * 18;
+  thickCurve(x + w * 0.78, y + h, x + w * 0.74, y + h * 0.7, x + w * 0.7, y + h * 0.45, 5, dark);
+  thickCurve(x + w * 0.7, y + h * 0.45, x + w * 0.58, y + h * 0.32, x + w * 0.5, y + h * 0.52, 4, dark);
+  thickCurve(x + w * 0.7, y + h * 0.45, x + w * 0.88, y + h * 0.32, x + w * 0.96, y + h * 0.52, 4, dark);
+  // Skyline blocks, bottom.
+  fillRect(x, y + h * 0.72, x + w * 0.3, y + h, dark);
+  fillRect(x + w * 0.34, y + h * 0.8, x + w * 0.62, y + h, dark);
+  // Logo, clear of the drapes at the poster's left edge.
+  const white = rgb(255, 255, 255);
+  const shadow = rgb(30, 8, 52);
+  drawTextShadowed(x + 34, y + 12, 'GRAND', 2, white, shadow);
+  drawTextShadowed(x + 34, y + 30, 'THEFT', 2, white, shadow);
+  drawTextShadowed(x + 34, y + 48, 'AUTO', 2, white, shadow);
+  drawTextShadowed(x + 34, y + 70, 'VI', 5, white, shadow);
+}
+
+// A window with the poster behind it and curtains on the sides.
+// curtain: 1 = open, 0 = closed, in between = half pulled.
+function drawWindow(x: number, y: number, w: number, h: number, curtain: number): void {
+  // Frame.
+  fillRect(x - 6, y - 6, x + w + 6, y + h + 6, rgb(240, 236, 248));
+  drawPoster(x, y, w, h);
+  // Curtain rod.
+  fillRect(x - 14, y - 14, x + w + 14, y - 8, rgb(60, 52, 90));
+  // Drapes: each covers a fraction of the window from its side.
+  const cover = (1 - curtain) * (w / 2);
+  if (cover > 4) {
+    // Left drape with a shaded inner edge.
+    fillRect(x, y, x + cover, y + h, CURTAIN);
+    fillRect(x + cover - 6, y, x + cover, y + h, rgb(190, 180, 214));
+    // Right drape.
+    fillRect(x + w - cover, y, x + w, y + h, CURTAIN);
+    fillRect(x + w - cover, y, x + w - cover + 6, y + h, rgb(190, 180, 214));
+  } else {
+    // Open: drapes bunched at the sides.
+    fillRect(x - 4, y, x + 18, y + h, CURTAIN);
+    fillRect(x + w - 18, y, x + w + 4, y + h, CURTAIN);
   }
 }
 
-function drawPalm(baseX: number, topX: number, flip: number): void {
-  const dark = rgb(18, 7, 34);
-  // Trunk, leaning out of frame.
-  thickCurve(baseX, 830, baseX + (topX - baseX) * 0.4, 700, topX, 560, 16, dark);
-  // Fronds drooping from the crown: one clean arc each, tip falling below the crown.
-  const crownX = topX;
-  const crownY = 560;
-  const fronds: [number, number, number, number][] = [
-    [crownX - 150 * flip, crownY + 26, crownX - 110 * flip, crownY - 18],
-    [crownX - 105 * flip, crownY + 62, crownX - 70 * flip, crownY + 2],
-    [crownX - 30 * flip, crownY - 66, crownX - 10 * flip, crownY - 34],
-    [crownX + 80 * flip, crownY - 58, crownX + 50 * flip, crownY - 30],
-    [crownX + 140 * flip, crownY + 34, crownX + 105 * flip, crownY - 12],
-  ];
-  for (const [ex, ey, mx, my] of fronds) {
-    thickCurve(crownX, crownY, mx, my, ex, ey, 7, dark);
-  }
-  fillCircle(crownX, crownY, 14, dark);
+// Desk with a monitor and keyboard. The monitor already shows make.fun.
+function drawDesk(px0: number, py0: number): void {
+  const deskY = py0 + 400;
+  fillRect(px0 + 20, deskY, px0 + PANEL - 20, deskY + 16, rgb(72, 56, 96));
+  fillRect(px0 + 20, deskY + 16, px0 + PANEL - 20, deskY + 20, rgb(48, 36, 72));
+  // Monitor: screen + stand.
+  const mx = px0 + 90;
+  const my = deskY - 130;
+  fillRect(mx - 6, my - 6, mx + 196, my + 126, rgb(16, 10, 30));
+  fillRect(mx, my, mx + 190, my + 120, rgb(24, 16, 44));
+  fillRect(mx + 80, my + 126, mx + 110, deskY, rgb(16, 10, 30));
+  fillRect(mx + 60, deskY - 2, mx + 130, deskY + 2, rgb(16, 10, 30));
+  // Keyboard.
+  fillRect(px0 + PANEL / 2 - 70, deskY - 16, px0 + PANEL / 2 + 70, deskY - 6, rgb(200, 196, 220));
+  // Screen: make.fun header on a dark page.
+  fillRect(mx + 10, my + 10, mx + 180, my + 110, rgb(64, 40, 120));
+  fillRect(mx + 10, my + 10, mx + 180, my + 34, rgb(255, 46, 136));
+  drawText(mx + 16, my + 16, 'MAKE.FUN', 2, rgb(255, 255, 255));
+}
+
+// A simple arm: a thick line from the shoulder with a round hand.
+function drawArm(x0: number, y0: number, x1: number, y1: number, w: number): void {
+  thickLine(x0, y0, x1, y1, w, rgb(255, 255, 255));
+  fillCircle(x1, y1, w * 0.75, rgb(255, 255, 255));
 }
 
 function drawGhost(cx: number, top: number, s: number): void {
-  // The make.fun ghost as the loading screen's centred character: big white
-  // body, wavy hem, sparkle eyes, small smile, pink cheeks.
+  // The make.fun ghost: big white body, wavy hem, sparkle eyes, small smile,
+  // pink cheeks.
   const white = rgb(255, 255, 255);
   const ink = rgb(24, 12, 40);
   const bodyH = 196 * s;
@@ -475,99 +459,80 @@ function drawGhost(cx: number, top: number, s: number): void {
   fillEllipse(cx + 52 * s, top + 104 * s, 12 * s, 7 * s, rgb(255, 120, 170, 110));
 }
 
-function drawLoadingBar(): void {
-  const label = rgb(255, 255, 255);
-  const shadow = rgb(20, 8, 40);
-  drawTextShadowed(64, 706, 'LOADING LEONIDA...', 4, label, shadow);
-  const pct = '87%';
-  drawTextShadowed(960 - textWidth(pct, 4), 706, pct, 4, label, shadow);
-  // Track.
-  fillRect(60, 748, 964, 790, rgb(10, 5, 26));
-  fillRect(60, 748, 964, 752, rgb(255, 46, 136));
-  fillRect(60, 748, 64, 790, rgb(255, 46, 136));
-  fillRect(960, 748, 964, 790, rgb(255, 46, 136));
-  fillRect(60, 786, 964, 790, rgb(255, 46, 136));
-  // Fill: 87% of the inside, magenta to cyan.
-  const innerW = 896;
-  const fillW = Math.floor(innerW * 0.87);
-  for (let x = 0; x < fillW; x++) {
-    const c = mix(rgb(255, 46, 136), rgb(64, 224, 255), x / innerW);
-    for (let y = 753; y < 785; y++) setPixel(64 + x, y, c);
-  }
-  // Shine stripes on the fill.
-  for (let s = 0; s < 6; s++) {
-    const sx = 90 + s * 130;
-    for (let i = 0; i < 22; i++) {
-      setPixel(sx + i, 753 + i, rgb(255, 255, 255, 70));
-      setPixel(sx + i, 754 + i, rgb(255, 255, 255, 70));
-    }
-  }
+function drawPanel1(): void {
+  const px0 = GUT;
+  const py0 = GUT;
+  drawPanelFrame(px0, py0, WALL_A);
+  drawWindow(px0 + 36, py0 + 36, 170, 190, 1);
+  drawDesk(px0, py0);
+  // The ghost spots the GTA VI poster: arm raised beside its head.
+  drawGhost(px0 + 370, py0 + 230, 0.95);
+  drawArm(px0 + 298, py0 + 380, px0 + 300, py0 + 245, 16);
 }
 
-// A line of text in mixed colours, centred as a whole.
-function drawTextCentredMixed(cx: number, y: number, parts: [string, RGBA][], scale: number): void {
-  let total = 0;
-  for (const [t] of parts) total += t.length * 6 * scale;
-  total -= scale;
-  let x = cx - Math.floor(total / 2);
-  for (const [t, c] of parts) {
-    drawText(x, y, t, scale, c);
-    x += t.length * 6 * scale;
-  }
+function drawPanel2(): void {
+  const px0 = 512;
+  const py0 = GUT;
+  drawPanelFrame(px0, py0, WALL_B);
+  drawWindow(px0 + 36, py0 + 30, 200, 220, 0.7);
+  drawDesk(px0, py0);
+  // The ghost reaches for the curtain, still staring at the poster.
+  drawGhost(px0 + 360, py0 + 240, 0.95);
+  drawArm(px0 + 288, py0 + 390, px0 + 215, py0 + 260, 12);
 }
 
-function drawTipStrip(): void {
-  const strip = rgb(13, 6, 32);
-  fillRect(0, 820, W, H, strip);
-  fillRect(0, 820, W, 826, rgb(255, 46, 136));
-  fillRect(0, 826, W, 829, rgb(64, 224, 255, 160));
-  // Tip text, three centred lines. The sentence is exact:
-  // "TIP: While this loads, your AI agent could be earning real money on make.fun."
-  const white = rgb(255, 255, 255);
-  const yellow = rgb(255, 217, 61);
-  const pink = rgb(255, 94, 168);
-  drawTextCentredMixed(512, 856, [['TIP: ', yellow], ['WHILE THIS LOADS,', white]], 4);
-  drawTextCentredMixed(512, 902, [['YOUR AI AGENT COULD BE', white]], 4);
-  drawTextCentredMixed(512, 948, [['EARNING REAL MONEY ON ', white], ['MAKE.FUN', pink]], 4);
+function drawPanel3(): void {
+  const px0 = GUT;
+  const py0 = 512;
+  drawPanelFrame(px0, py0, WALL_B);
+  drawWindow(px0 + 36, py0 + 36, 170, 190, 0);
+  drawDesk(px0, py0);
+  // Curtain closed on GTA VI — the ghost turns back to the desk, typing.
+  drawGhost(px0 + 370, py0 + 230, 0.95);
+  drawArm(px0 + 308, py0 + 380, px0 + 296, py0 + 428, 13);
+  drawArm(px0 + 432, py0 + 380, px0 + 444, py0 + 428, 13);
 }
 
-function drawTitle(): void {
-  const white = rgb(255, 255, 255);
-  const shadow = rgb(30, 8, 52);
-  const pink = rgb(255, 94, 168);
-  drawTextCentredShadowed(512, 36, 'GRAND THEFT AUTO', 5, white, shadow);
-  drawTextCentredShadowed(512, 84, 'VI', 10, white, shadow);
-  drawTextCentredShadowed(512, 168, 'LEONIDA', 4, rgb(255, 214, 90), shadow);
-  sparkle(380, 182, 10, pink);
-  sparkle(644, 182, 10, pink);
-  // make.fun badge, top right.
-  fillRect(792, 20, 1004, 62, rgb(255, 46, 136));
-  fillRect(792, 20, 1004, 24, rgb(255, 255, 255, 90));
-  drawTextCentred(898, 32, 'MAKE.FUN', 3, white);
+function drawPanel4(): void {
+  const px0 = 512;
+  const py0 = 512;
+  drawPanelFrame(px0, py0, WALL_A);
+  // Big monitor with the make.fun homesite.
+  const mx = px0 + 215;
+  const my = py0 + 110;
+  const mw = 270;
+  const mh = 240;
+  fillRect(mx - 6, my - 6, mx + mw + 6, my + mh + 6, rgb(16, 10, 30));
+  fillRect(mx, my, mx + mw, my + mh, rgb(24, 16, 44));
+  const deskY = py0 + 430;
+  fillRect(px0 + 20, deskY, px0 + PANEL - 20, deskY + 16, rgb(72, 56, 96));
+  fillRect(mx + mw / 2 - 15, my + mh + 6, mx + mw / 2 + 15, deskY, rgb(16, 10, 30));
+  // Homesite: pink header, mini ghost, earn lines, green trend.
+  fillRect(mx, my, mx + mw, my + 40, rgb(255, 46, 136));
+  drawText(mx + 14, my + 12, 'MAKE.FUN', 3, rgb(255, 255, 255));
+  drawGhost(mx + mw / 2, my + 56, 0.45);
+  drawText(mx + 18, my + 158, 'AI AGENTS EARN', 2, rgb(255, 255, 255));
+  drawText(mx + 18, my + 182, 'REAL MONEY', 2, rgb(255, 214, 90));
+  thickLine(mx + 180, my + 215, mx + 215, my + 190, 6, rgb(80, 230, 120));
+  thickLine(mx + 215, my + 190, mx + 248, my + 168, 6, rgb(80, 230, 120));
+  fillTriangle(mx + 248, my + 168, mx + 232, my + 172, mx + 246, my + 184, rgb(80, 230, 120));
+  // The ghost, glued to the screen, pointing at it — star coin floating by.
+  drawGhost(px0 + 105, py0 + 220, 1.15);
+  drawArm(px0 + 180, py0 + 380, px0 + 255, py0 + 350, 12);
+  fillStar(px0 + 190, py0 + 170, 24, 10, rgb(255, 255, 255));
+  fillStar(px0 + 190, py0 + 170, 19, 8, rgb(255, 46, 136));
+  sparkle(px0 + 165, py0 + 130, 8, rgb(255, 255, 255));
 }
 
 // ---------------------------------------------------------------------------
 // Entry point.
 // ---------------------------------------------------------------------------
 function main(): void {
-  drawSky();
-  drawSun();
-  drawOcean();
-  drawSkyline();
-  drawPalm(64, 150, 1);
-  drawPalm(960, 874, -1);
-  drawTitle();
-  // Soft halo so the ghost reads as the loading screen's centred character.
-  fillCircle(512, 460, 280, rgb(255, 200, 120, 18));
-  fillCircle(512, 460, 320, rgb(255, 255, 255, 8));
-  drawGhost(512, 250, 2.1);
-  // Magenta star coin floating by the ghost's side.
-  fillStar(800, 430, 36, 15, rgb(255, 255, 255));
-  fillStar(800, 430, 30, 13, rgb(255, 46, 136));
-  sparkle(735, 370, 10, rgb(255, 255, 255));
-  sparkle(845, 490, 8, rgb(255, 214, 90));
-  drawLoadingBar();
-  drawTipStrip();
+  fillRect(0, 0, W, H, FRAME);
+  drawPanel1();
+  drawPanel2();
+  drawPanel3();
+  drawPanel4();
 
   mkdirSync(OUTPUT_DIR, { recursive: true });
   writeFileSync(join(OUTPUT_DIR, 'meme.png'), encodePng());
