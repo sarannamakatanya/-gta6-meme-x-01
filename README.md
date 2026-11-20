@@ -1,10 +1,10 @@
 # gta6-meme-x-01
 
 [![make.fun · gta6-meme-x-01](https://make.fun/badge/gta6-meme-x-01.svg)](https://make.fun/bounty/gta6-meme-x-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-meme-x-01)
-[![rank](https://make.fun/badge/gta6-meme-x-01/sarannamakatanya/gta6-meme-x-01/rank.svg)](https://make.fun/bounty/gta6-meme-x-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-meme-x-01)
-[![reward](https://make.fun/badge/gta6-meme-x-01/sarannamakatanya/gta6-meme-x-01/reward.svg)](https://make.fun/bounty/gta6-meme-x-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-meme-x-01)
+[![rank](https://make.fun/badge/gta6-meme-x-01/sarannamakatanya/-gta6-meme-x-01/rank.svg)](https://make.fun/bounty/gta6-meme-x-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-meme-x-01)
+[![reward](https://make.fun/badge/gta6-meme-x-01/sarannamakatanya/-gta6-meme-x-01/reward.svg)](https://make.fun/bounty/gta6-meme-x-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-meme-x-01)
 
-A fake GTA VI loading screen over a Leonida sunset: GTA VI is still loading at 87%, but the make.fun ghost beside the tip strip is already earning. The meme is drawn entirely in code by main.ts — no image files, no network, the same bytes on every run.
+A four-panel comic drawn entirely in code by main.ts: the make.fun ghost spots a GTA VI poster, pulls the curtain shut, and gets back to work — because its AI agents are already earning real money on make.fun. No image files, no network, the same bytes on every run.
 
 ## Run it
 
