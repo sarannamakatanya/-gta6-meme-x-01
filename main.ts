@@ -4,8 +4,9 @@
 // out the window, goes back to his PC" meme — except the guy IS the make.fun
 // ghost, and the PC shows make.fun. Panel 1: the ghost spots the GTA VI poster
 // through the window. Panel 2: it reaches for the curtain. Panel 3: curtain
-// closed, it turns back to the desk. Panel 4: glued to the make.fun homesite.
-// GTA VI can wait — the ghost is already earning.
+// closed, it turns back to the desk. Panel 4: glued to the make.fun homesite,
+// delivering the motto in a speech bubble. GTA VI can wait — the ghost is
+// already earning.
 //
 // This program (Node 22, standard library only, no network, no clock, no files
 // outside its own repository) does two deterministic things:
@@ -497,9 +498,30 @@ function drawPanel4(): void {
   const px0 = 512;
   const py0 = 512;
   drawPanelFrame(px0, py0, WALL_A);
-  // Big monitor with the make.fun homesite.
+  // Speech bubble overhead: the ghost's line, the make.fun motto.
+  const ink = rgb(24, 12, 40);
+  const pink = rgb(255, 46, 136);
+  const bx0 = px0 + 20;
+  const bx1 = px0 + 484;
+  const by0 = py0 + 36;
+  const by1 = py0 + 150;
+  // Tail first, then the bubble body over its base.
+  fillTriangle(px0 + 135, py0 + 204, px0 + 105, by1, px0 + 165, by1, rgb(255, 255, 255));
+  fillRect(bx0, by0, bx1, by1, rgb(255, 255, 255));
+  // Dark outline, with a gap in the bottom edge where the tail joins.
+  fillRect(bx0, by0, bx1, by0 + 3, ink);
+  fillRect(bx0, by1 - 3, px0 + 105, by1, ink);
+  fillRect(px0 + 165, by1 - 3, bx1, by1, ink);
+  fillRect(bx0, by0, bx0 + 3, by1, ink);
+  fillRect(bx1 - 3, by0, bx1, by1, ink);
+  thickLine(px0 + 105, by1, px0 + 135, py0 + 204, 3, ink);
+  thickLine(px0 + 165, by1, px0 + 135, py0 + 204, 3, ink);
+  drawTextCentred(px0 + 252, py0 + 56, 'YOUR AI AGENTS EARN', 3, ink);
+  drawText(px0 + 38, py0 + 96, 'REAL MONEY ON ', 3, ink);
+  drawText(px0 + 38 + textWidth('REAL MONEY ON ', 3), py0 + 96, 'MAKE.FUN!', 3, pink);
+  // Big monitor with the make.fun homesite, shifted down to clear the bubble.
   const mx = px0 + 215;
-  const my = py0 + 110;
+  const my = py0 + 170;
   const mw = 270;
   const mh = 240;
   fillRect(mx - 6, my - 6, mx + mw + 6, my + mh + 6, rgb(16, 10, 30));
@@ -518,10 +540,9 @@ function drawPanel4(): void {
   fillTriangle(mx + 248, my + 168, mx + 232, my + 172, mx + 246, my + 184, rgb(80, 230, 120));
   // The ghost, glued to the screen, pointing at it — star coin floating by.
   drawGhost(px0 + 105, py0 + 220, 1.15);
-  drawArm(px0 + 180, py0 + 380, px0 + 255, py0 + 350, 12);
-  fillStar(px0 + 190, py0 + 170, 24, 10, rgb(255, 255, 255));
-  fillStar(px0 + 190, py0 + 170, 19, 8, rgb(255, 46, 136));
-  sparkle(px0 + 165, py0 + 130, 8, rgb(255, 255, 255));
+  drawArm(px0 + 180, py0 + 380, px0 + 218, py0 + 338, 12);
+  fillStar(px0 + 195, py0 + 185, 24, 10, rgb(255, 255, 255));
+  fillStar(px0 + 195, py0 + 185, 19, 8, rgb(255, 46, 136));
 }
 
 // ---------------------------------------------------------------------------
