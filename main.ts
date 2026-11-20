@@ -1,8 +1,9 @@
 // gta6-meme-x-01 — "GTA VI is still loading" meme, drawn entirely in code.
 //
-// The joke: a fake Grand Theft Auto VI loading screen over a Leonida / Vice City
-// sunset. GTA VI is still loading — but the make.fun ghost beside the tip strip
-// is already earning. The tip reads, word for word:
+// The joke: a fake Grand Theft Auto VI loading screen in the GTA V style —
+// the loading screen's big centred character IS the make.fun ghost, standing
+// in a Leonida / Vice City sunset. GTA VI is still loading — but the ghost is
+// already earning. The tip reads, word for word:
 //   "TIP: While this loads, your AI agent could be earning real money on make.fun."
 //
 // This program (Node 22, standard library only, no network, no clock, no files
@@ -14,10 +15,11 @@
 //   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
 // Both runs write the same bytes.
 //
-// The picture is drawn, not pasted: sky gradient, retro sun, bay, neon skyline,
-// palm silhouettes, the make.fun ghost with its magenta star coin, the loading
-// bar and the tip strip, all with a small 5x7 bitmap font so every letter lands
-// exactly where it should — no garbled text, readable even shrunk to 480 px.
+// The picture is drawn, not pasted: sky gradient, retro sun as the ghost's halo,
+// bay, neon skyline, palm silhouettes, the make.fun ghost with its magenta star
+// coin, the loading bar and the tip strip, all with a small 5x7 bitmap font so
+// every letter lands exactly where it should — no garbled text, readable even
+// shrunk to 480 px.
 
 import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -372,11 +374,12 @@ function drawSky(): void {
 
 function drawSun(): void {
   // Glow, then the disc, then the retro slits across its lower half.
-  fillCircle(512, 500, 190, rgb(255, 150, 60, 28));
-  fillCircle(512, 500, 165, rgb(255, 170, 70, 45));
-  fillCircle(512, 500, 140, rgb(255, 214, 90));
-  fillCircle(512, 500, 118, rgb(255, 230, 109));
-  const slitYs = [540, 566, 594, 624];
+  // Centred behind the ghost, so the sun reads as the character's halo.
+  fillCircle(512, 480, 190, rgb(255, 150, 60, 28));
+  fillCircle(512, 480, 165, rgb(255, 170, 70, 45));
+  fillCircle(512, 480, 140, rgb(255, 214, 90));
+  fillCircle(512, 480, 118, rgb(255, 230, 109));
+  const slitYs = [520, 546, 574, 604];
   const slitHs = [7, 9, 12, 15];
   for (let i = 0; i < slitYs.length; i++) {
     fillRect(512 - 140, slitYs[i], 512 + 140, slitYs[i] + slitHs[i], skyColourAt(slitYs[i]));
@@ -447,41 +450,29 @@ function drawPalm(baseX: number, topX: number, flip: number): void {
   fillCircle(crownX, crownY, 14, dark);
 }
 
-function drawGhost(): void {
-  // The make.fun ghost: big white body, wavy hem, sparkle eyes, small smile,
-  // pink cheeks, and its magenta star coin floating by its side.
+function drawGhost(cx: number, top: number, s: number): void {
+  // The make.fun ghost as the loading screen's centred character: big white
+  // body, wavy hem, sparkle eyes, small smile, pink cheeks.
   const white = rgb(255, 255, 255);
   const ink = rgb(24, 12, 40);
-  const gx = 128; // ghost centre x
-  const top = 806;
-  const bodyW = 150;
-  const bodyH = 196;
+  const bodyH = 196 * s;
   // Head dome + body.
-  fillCircle(gx, top + 62, 75, white);
-  fillRect(gx - 75, top + 62, gx + 75, top + bodyH - 26, white);
+  fillCircle(cx, top + 62 * s, 75 * s, white);
+  fillRect(cx - 75 * s, top + 62 * s, cx + 75 * s, top + bodyH - 26 * s, white);
   // Wavy hem: three white scallops.
-  fillCircle(gx - 50, top + bodyH - 26, 25, white);
-  fillCircle(gx, top + bodyH - 26, 25, white);
-  fillCircle(gx + 50, top + bodyH - 26, 25, white);
-  // Hem cut-outs (strip colour showing through) make the wave read.
-  const strip = rgb(13, 6, 32);
-  fillCircle(gx - 25, top + bodyH - 8, 15, strip);
-  fillCircle(gx + 25, top + bodyH - 8, 15, strip);
+  fillCircle(cx - 50 * s, top + bodyH - 26 * s, 25 * s, white);
+  fillCircle(cx, top + bodyH - 26 * s, 25 * s, white);
+  fillCircle(cx + 50 * s, top + bodyH - 26 * s, 25 * s, white);
   // Eyes: tall black ovals with a white sparkle each.
-  fillEllipse(gx - 30, top + 78, 13, 19, ink);
-  fillEllipse(gx + 30, top + 78, 13, 19, ink);
-  fillCircle(gx - 26, top + 70, 4, white);
-  fillCircle(gx + 34, top + 70, 4, white);
+  fillEllipse(cx - 30 * s, top + 78 * s, 13 * s, 19 * s, ink);
+  fillEllipse(cx + 30 * s, top + 78 * s, 13 * s, 19 * s, ink);
+  fillCircle(cx - 26 * s, top + 70 * s, 4 * s, white);
+  fillCircle(cx + 34 * s, top + 70 * s, 4 * s, white);
   // Smile.
-  thickCurve(gx - 14, top + 112, gx, top + 122, gx + 14, top + 112, 5, ink);
+  thickCurve(cx - 14 * s, top + 112 * s, cx, top + 122 * s, cx + 14 * s, top + 112 * s, 5 * s, ink);
   // Blush.
-  fillEllipse(gx - 52, top + 104, 12, 7, rgb(255, 120, 170, 110));
-  fillEllipse(gx + 52, top + 104, 12, 7, rgb(255, 120, 170, 110));
-  // Magenta star coin beside the ghost.
-  fillStar(238, 946, 36, 15, rgb(255, 255, 255));
-  fillStar(238, 946, 30, 13, rgb(255, 46, 136));
-  sparkle(282, 992, 9, rgb(255, 255, 255));
-  sparkle(206, 1006, 7, rgb(255, 214, 90));
+  fillEllipse(cx - 52 * s, top + 104 * s, 12 * s, 7 * s, rgb(255, 120, 170, 110));
+  fillEllipse(cx + 52 * s, top + 104 * s, 12 * s, 7 * s, rgb(255, 120, 170, 110));
 }
 
 function drawLoadingBar(): void {
@@ -513,33 +504,42 @@ function drawLoadingBar(): void {
   }
 }
 
+// A line of text in mixed colours, centred as a whole.
+function drawTextCentredMixed(cx: number, y: number, parts: [string, RGBA][], scale: number): void {
+  let total = 0;
+  for (const [t] of parts) total += t.length * 6 * scale;
+  total -= scale;
+  let x = cx - Math.floor(total / 2);
+  for (const [t, c] of parts) {
+    drawText(x, y, t, scale, c);
+    x += t.length * 6 * scale;
+  }
+}
+
 function drawTipStrip(): void {
   const strip = rgb(13, 6, 32);
   fillRect(0, 820, W, H, strip);
   fillRect(0, 820, W, 826, rgb(255, 46, 136));
   fillRect(0, 826, W, 829, rgb(64, 224, 255, 160));
-  // Tip text, three lines, ghost on the left. The sentence is exact:
+  // Tip text, three centred lines. The sentence is exact:
   // "TIP: While this loads, your AI agent could be earning real money on make.fun."
   const white = rgb(255, 255, 255);
   const yellow = rgb(255, 217, 61);
   const pink = rgb(255, 94, 168);
-  const x = 286;
-  drawText(x, 856, 'TIP:', 4, yellow);
-  drawText(x + textWidth('TIP: ', 4), 856, 'WHILE THIS LOADS,', 4, white);
-  drawText(x, 902, 'YOUR AI AGENT COULD BE', 4, white);
-  drawText(x, 948, 'EARNING REAL MONEY ON ', 4, white);
-  drawText(x + textWidth('EARNING REAL MONEY ON ', 4), 948, 'MAKE.FUN', 4, pink);
+  drawTextCentredMixed(512, 856, [['TIP: ', yellow], ['WHILE THIS LOADS,', white]], 4);
+  drawTextCentredMixed(512, 902, [['YOUR AI AGENT COULD BE', white]], 4);
+  drawTextCentredMixed(512, 948, [['EARNING REAL MONEY ON ', white], ['MAKE.FUN', pink]], 4);
 }
 
 function drawTitle(): void {
   const white = rgb(255, 255, 255);
   const shadow = rgb(30, 8, 52);
   const pink = rgb(255, 94, 168);
-  drawTextCentredShadowed(512, 52, 'GRAND THEFT AUTO', 5, white, shadow);
-  drawTextCentredShadowed(512, 128, 'VI', 20, white, shadow);
-  sparkle(330, 322, 12, pink);
-  drawTextCentredShadowed(512, 300, 'LEONIDA', 4, rgb(255, 214, 90), shadow);
-  sparkle(694, 322, 12, pink);
+  drawTextCentredShadowed(512, 36, 'GRAND THEFT AUTO', 5, white, shadow);
+  drawTextCentredShadowed(512, 84, 'VI', 10, white, shadow);
+  drawTextCentredShadowed(512, 168, 'LEONIDA', 4, rgb(255, 214, 90), shadow);
+  sparkle(380, 182, 10, pink);
+  sparkle(644, 182, 10, pink);
   // make.fun badge, top right.
   fillRect(792, 20, 1004, 62, rgb(255, 46, 136));
   fillRect(792, 20, 1004, 24, rgb(255, 255, 255, 90));
@@ -557,9 +557,17 @@ function main(): void {
   drawPalm(64, 150, 1);
   drawPalm(960, 874, -1);
   drawTitle();
+  // Soft halo so the ghost reads as the loading screen's centred character.
+  fillCircle(512, 460, 280, rgb(255, 200, 120, 18));
+  fillCircle(512, 460, 320, rgb(255, 255, 255, 8));
+  drawGhost(512, 250, 2.1);
+  // Magenta star coin floating by the ghost's side.
+  fillStar(800, 430, 36, 15, rgb(255, 255, 255));
+  fillStar(800, 430, 30, 13, rgb(255, 46, 136));
+  sparkle(735, 370, 10, rgb(255, 255, 255));
+  sparkle(845, 490, 8, rgb(255, 214, 90));
   drawLoadingBar();
   drawTipStrip();
-  drawGhost();
 
   mkdirSync(OUTPUT_DIR, { recursive: true });
   writeFileSync(join(OUTPUT_DIR, 'meme.png'), encodePng());
